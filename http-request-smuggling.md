@@ -123,6 +123,7 @@ Front-end 에서 위 사진처럼 request 패킷을 받으면 각각의 패킷�
     이번 예제는 Content-length 와 Transfer-encoding을 이용한 간단한 예제를 보여주겠다.
     
     이번 서버 설정은 CL.TE 방식이다.
+    
     ![image](https://user-images.githubusercontent.com/38517436/63986950-28266c00-cb11-11e9-9255-c15b28ea5af3.png)
     
     우선 Front-end는 Content-length = 6 이므로 \r\n 이후에 있는 값 0\r\n\r\nG 을 데이터로 인식해서 처리한 후 Back-end로 보내게 된다. 
