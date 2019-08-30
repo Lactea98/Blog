@@ -37,32 +37,22 @@ Reference를 참고하자.
 ### Concepts
 
 ​
-
 HTTP/1.1 은 여러개의 HTTP 요청을 보낼 수 있게 지원한다. 이 프로토콜은 HTTP 요청이 일련(연속적)으로 배치되어 서버로 전송된다. 서버는 이 일련의 
 
 패킷을 받아 응답을 하기 위해 parsing을 하게되는데, 각각의 패킷이 어디가 끝 부분이고 다음 패킷의 시작부분이 어디인지 헤더를 분석한다.
 
 ​
-
 ![image](https://user-images.githubusercontent.com/38517436/63819813-bc61c900-c981-11e9-9bd8-b03dc34bbb9e.png)
-
-​
 
 출처: portswigger.net
 
-​
-
-위 사진처럼 각각의 요청이 일련으로 배치되어 서버에 전송이 되고, 서버는 각각의 시작과 끝을 분석하여 패킷을 분리시키고 각각의 request 패킷에 response을 
+​위 사진처럼 각각의 요청이 일련으로 배치되어 서버에 전송이 되고, 서버는 각각의 시작과 끝을 분석하여 패킷을 분리시키고 각각의 request 패킷에 response을 
 
 하게 된다. 만약 공격자가 아래 사진처럼 정상적인 패킷에 악의적인 패킷을 포함시켜 request를 보내면 어떻게 될까?
 
-​
+​![image](https://user-images.githubusercontent.com/38517436/63820017-9c7ed500-c982-11e9-8c76-1a9e3a855143.png)
 
-![image](https://user-images.githubusercontent.com/38517436/63820017-9c7ed500-c982-11e9-8c76-1a9e3a855143.png)
-
-​
-
-Front-end 에서 위 사진처럼 request 패킷을 받으면 각각의 패킷의 시작과 끝을 찾게 되는데, 분석을 하는 기준 때문에 공격자가 보낸 파란색 요청과 주황색 요청이 
+​Front-end 에서 위 사진처럼 request 패킷을 받으면 각각의 패킷의 시작과 끝을 찾게 되는데, 분석을 하는 기준 때문에 공격자가 보낸 파란색 요청과 주황색 요청이 
 
 분리되어 Back-end 서버로 전송된다. Back-end 는 파란색 요청만 응답하고 주황색 요청은 서버측에 posioning 되어 대기하다가 초록색 요청이 들어보면 주황색 
 
@@ -78,25 +68,19 @@ Front-end 에서 위 사진처럼 request 패킷을 받으면 각각의 패킷�
 
 ### 1\. Why split a request into two requests
 
-​
-
 이 이유를 알기 위해서는 Content-length 와 Transfer-encodeing 헤더에 대해 알고 있어야 한다.
 
 ​
 
 - Content-length
 
-​
-
-Content-length는 entity body의 크기를 bytes 숫자로 나타낸 것이다. 예를 들어 request나 response를 받을 때 헤더에 content-length 값이 5이면 5byes 만큼만 entity body에서 가져오게 된다. 만약 content-length 값이 10bytes 인데 entity body에서 5bytes 값만 있다면, 받는 입장에서는 "엇? 데이터가 덜 들어왔으니까 기다려야지" 라는 행동을 할 것이다. 기다라려도 요청이 추가적으로 들어오지 않으면 timeout이 된다.
+​Content-length는 entity body의 크기를 bytes 숫자로 나타낸 것이다. 예를 들어 request나 response를 받을 때 헤더에 content-length 값이 5이면 5byes 만큼만 entity body에서 가져오게 된다. 만약 content-length 값이 10bytes 인데 entity body에서 5bytes 값만 있다면, 받는 입장에서는 "엇? 데이터가 덜 들어왔으니까 기다려야지" 라는 행동을 할 것이다. 기다라려도 요청이 추가적으로 들어오지 않으면 timeout이 된다.
 
 ​
 
 - Transfer-encoding
 
-​
-
-여러가지의 Tansfer-encoding 방식이 있는데 여기서 다룰 encoding은 Chunked 이다.
+​여러가지의 Tansfer-encoding 방식이 있는데 여기서 다룰 encoding은 Chunked 이다.
 
 ​
 
@@ -114,15 +98,11 @@ Transfer-Encoding: identity
 
 ```
 
-​
-
-HTTP/1.1 에서 데이터 전송 메커니즘 중 하나로, 덩어리(Chunk)의 나열로 데이터를 전송한다. 
+​HTTP/1.1 에서 데이터 전송 메커니즘 중 하나로, 덩어리(Chunk)의 나열로 데이터를 전송한다. 
 
 이를 사용하는 이유는 content-length를 모를때 Transfer-encoding을 사용하여 중간중간에 계속 데이터를 전송 할 수 있게 된다. 더이상 데이터를 줄 것이 없다면 마지막에 0 \\r\\n 을 보내게 된다.
 
-​
-
-Chunked Transfer-encoding 형태는 다음과 같다.
+​Chunked Transfer-encoding 형태는 다음과 같다.
 
 ​
 
@@ -134,9 +114,7 @@ Chunked Transfer-encoding 형태는 다음과 같다.
 
 ```
 
-​
-
-형태는 위와 같고 실제 패킷에는 다음과 같이 찍히게 된다.
+​형태는 위와 같고 실제 패킷에는 다음과 같이 찍히게 된다.
 
 ​
 
@@ -160,12 +138,9 @@ in\r\n\r\nchunks.\r\n
 
 ```
 
-​
-
-위 내용을 decode 하면 아래와 같다.
+​위 내용을 decode 하면 아래와 같다.
 
 ​
-
 ```
 
 Wikipedia in 
@@ -178,25 +153,15 @@ chunks.
 
 - Simple example
 
-​
+​위에 설명했던 Content-length와 Transfer-encoding을 이용하여 간단한 예를 보여주겠다.
 
-위에 설명했던 Content-length와 Transfer-encoding을 이용하여 간단한 예를 보여주겠다.
+​![image](https://user-images.githubusercontent.com/38517436/63820017-9c7ed500-c982-11e9-8c76-1a9e3a855143.png)
 
-​
+​우선 위에서 봤던 사진을 다시 가져와서 victim 에게 어떤 영향을 미치는지 설명하겠다.
 
-![image](https://user-images.githubusercontent.com/38517436/63820017-9c7ed500-c982-11e9-8c76-1a9e3a855143.png)
+​![image](https://user-images.githubusercontent.com/38517436/63986113-894c4080-cb0d-11e9-9eb9-a27211aecba3.png)
 
-​
-
-우선 위에서 봤던 사진을 다시 가져와서 victim 에게 어떤 영향을 미치는지 설명하겠다.
-
-​
-
-![image](https://user-images.githubusercontent.com/38517436/63986113-894c4080-cb0d-11e9-9eb9-a27211aecba3.png)
-
-​
-
-여기서 가정을 하겠다. Front-end는 첫번째 Content-length 를 기준으로 패킷을 분석하고, Back-end는 두번째 Content-length를 기준으로 패킷을 분석한다고 가정을 하자. 공격자는 파란색과 주황색 패킷을 보냈다. 파란색 패킷에는 위에 사진처럼 2개의 Content-length 헤더를 가지고 있다.
+​여기서 가정을 하겠다. Front-end는 첫번째 Content-length 를 기준으로 패킷을 분석하고, Back-end는 두번째 Content-length를 기준으로 패킷을 분석한다고 가정을 하자. 공격자는 파란색과 주황색 패킷을 보냈다. 파란색 패킷에는 위에 사진처럼 2개의 Content-length 헤더를 가지고 있다.
 
 ​
 
@@ -216,17 +181,11 @@ chunks.
 
 이러한 서버 설정은 CL.CL 이라고 부른다.
 
-​
+​실제로 2개의 Content-length 기술은 거의 동작하지 않는데, 이유는 많은 시스템은 여러개의 Content-length 헤더 요청을 거절하기 때문이다. 대신에, Chunked encoding을 사용하여 시스템을 공격할 수 있다. RFC 2616 에 따르면,
 
-실제로 2개의 Content-length 기술은 거의 동작하지 않는데, 이유는 많은 시스템은 여러개의 Content-length 헤더 요청을 거절하기 때문이다. 대신에, Chunked encoding을 사용하여 시스템을 공격할 수 있다. RFC 2616 에 따르면,
+​If a message is received with both a Transfer-Encoding header field and a Content-Length header field, the latter MUST be ignored.
 
-​
-
-If a message is received with both a Transfer-Encoding header field and a Content-Length header field, the latter MUST be ignored.
-
-​
-
-이번 예제는 Content-length 와 Transfer-encoding을 이용한 간단한 예제를 보여주겠다.
+​이번 예제는 Content-length 와 Transfer-encoding을 이용한 간단한 예제를 보여주겠다.
 
 ​
 
